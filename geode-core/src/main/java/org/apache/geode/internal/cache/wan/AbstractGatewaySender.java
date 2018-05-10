@@ -846,6 +846,11 @@ public abstract class AbstractGatewaySender implements GatewaySender, Distributi
       List<Integer> allRemoteDSIds) {
 
     final boolean isDebugEnabled = logger.isDebugEnabled();
+    final GatewaySenderStats stats = getStatistics();
+    if (!checkForDistribution(event, stats)) {
+      stats.incEventsNotQueued();
+      return;
+    }
 
     // released by this method or transfers ownership to TmpQueueEvent
     @Released
@@ -867,13 +872,7 @@ public abstract class AbstractGatewaySender implements GatewaySender, Distributi
         return;
       }
 
-      final GatewaySenderStats stats = getStatistics();
       stats.incEventsReceived();
-
-      if (!checkForDistribution(event, stats)) {
-        stats.incEventsNotQueued();
-        return;
-      }
 
       // this filter is defined by Asif which exist in old wan too. new wan has
       // other GatewaEventFilter. Do we need to get rid of this filter. Cheetah is
